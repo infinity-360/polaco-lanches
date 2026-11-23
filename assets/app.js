@@ -10,22 +10,61 @@ const brl = n => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" 
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const waLink = text => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
 
-/* Logo surgindo com a rolagem */
-const hero = $("#inicio"), header = $("#top"), reveal = $(".reveal");
-let ticking = false;
-function onScroll() {
-  ticking = false;
-  const range = hero.offsetHeight - innerHeight;
-  const p = Math.min(1, Math.max(0, scrollY / range));
-  document.documentElement.style.setProperty("--p", p.toFixed(4));
-  reveal.classList.toggle("live", p > .7);
-  header.classList.toggle("show", scrollY > range);
-}
-addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
-addEventListener("resize", onScroll);
-onScroll();
+/* Entregador atravessa a página com a rolagem e vira a logo */
+const hero = $("#inicio"), header = $("#top"), palco = $(".palco"), moto = $("#moto"), surge = $(".surge");
+const ctx = moto.getContext("2d");
+const QUADROS = 12, quadros = [];
+const semMovimento = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const limita = v => Math.min(1, Math.max(0, v));
+const trecho = (p, a, b) => limita((p - a) / (b - a));
+const suave = t => t * t * (3 - 2 * t);
+const salto = t => 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2);
+let alvo = semMovimento ? 1 : 0, atual = alvo, girando = false, ultimo = -1;
 
-if (matchMedia("(prefers-reduced-motion: reduce)").matches) $("#bg").pause();
+function desenharMoto(i) {
+  const img = quadros[i] || quadros.find(Boolean);
+  if (!img || img === ultimo) return;
+  ultimo = img;
+  ctx.clearRect(0, 0, 640, 640);
+  ctx.drawImage(img, 0, 0, 640, 640);
+}
+function cena(p) {
+  const W = palco.clientWidth, S = moto.offsetWidth;
+  const anda = suave(trecho(p, 0, .52)), entra = suave(trecho(p, .5, .68));
+  const x = (1 - anda) * -(W / 2 + S * .62);
+  const pulo = Math.sin(p * 90) * 3 * (1 - entra);
+  const giro = Math.sin(p * 55) * .7 * (1 - entra) - entra * 8;
+  moto.style.transform = `translate(calc(-50% + ${x.toFixed(1)}px), calc(-50% + ${pulo.toFixed(1)}px)) rotate(${giro.toFixed(2)}deg) scale(${(1 - entra * .74).toFixed(3)})`;
+  moto.style.opacity = (1 - trecho(p, .6, .69)).toFixed(3);
+  const l = trecho(p, .56, .74);
+  surge.style.opacity = limita(l * 3.2).toFixed(3);
+  surge.style.transform = `translate(-50%, -50%) scale(${(.16 + .84 * salto(l)).toFixed(3)}) rotate(${((1 - l) * -14).toFixed(2)}deg)`;
+  const n = Math.floor(p * 70) % (QUADROS * 2 - 2);
+  desenharMoto(n < QUADROS ? n : QUADROS * 2 - 2 - n);
+  hero.style.setProperty("--p", p.toFixed(4));
+  hero.classList.toggle("final", p > .76);
+}
+function animar() {
+  const falta = alvo - atual;
+  atual = Math.abs(falta) < .0008 ? alvo : atual + falta * .16;
+  cena(atual);
+  if (atual !== alvo) requestAnimationFrame(animar); else girando = false;
+}
+function onScroll() {
+  const curso = hero.offsetHeight - palco.clientHeight;
+  alvo = semMovimento || curso <= 0 ? 1 : limita(scrollY / curso);
+  header.classList.toggle("show", curso > 0 && scrollY > curso);
+  if (!girando) { girando = true; requestAnimationFrame(animar); }
+}
+for (let i = 0; i < QUADROS && !semMovimento; i++) {
+  const img = new Image();
+  img.onload = () => { quadros[i] = img; ultimo = -1; cena(atual); };
+  img.src = `assets/moto/m${String(i).padStart(2, "0")}.webp`;
+}
+addEventListener("scroll", onScroll, { passive: true });
+addEventListener("resize", () => { cena(atual); onScroll(); });
+cena(atual);
+onScroll();
 
 /* Aberto ou fechado, sempre no horário de Maringá */
 function renderStatus() {

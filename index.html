@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
+<link rel="preload" as="image" href="assets/moto/m00.webp" type="image/webp">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Restaurant","name":"Polaco Lanches Sol Nascente","image":"assets/img/logo.jpg","telephone":"+554430343834","servesCuisine":"Lanches","priceRange":"R$",
 "address":{"@type":"PostalAddress","streetAddress":"R. Pion Gertrude H. Fritzen, 7941","addressLocality":"Maringá","addressRegion":"PR","postalCode":"87053-105","addressCountry":"BR"},
@@ -21,16 +22,13 @@
 "aggregateRating":{"@type":"AggregateRating","ratingValue":"4.8","reviewCount":"480"},
 "openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday"],"opens":"18:00","closes":"23:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":["Friday","Saturday"],"opens":"18:00","closes":"23:30"}]}
 </script>
+<noscript><style>#inicio{height:100svh}#moto,.hint{display:none}.surge{opacity:1!important;transform:translate(-50%,-50%)!important}.fecha{--f:1;visibility:visible}</style></noscript>
 </head>
 <body>
-<video id="bg" autoplay muted loop playsinline preload="auto" poster="assets/img/capa.jpg" aria-hidden="true">
-  <source src="assets/video/fundo.mp4" type="video/mp4">
-</video>
-<div id="veil" aria-hidden="true"></div>
-
 <header id="top">
   <a class="brand" href="#inicio" aria-label="Polaco Lanches, início"><img src="assets/img/logo.jpg" alt="" width="44" height="44"><span>Polaco Lanches</span></a>
   <nav aria-label="Principal">
+    <a href="#premio">Prêmio</a>
     <a href="#cardapio">Cardápio</a>
     <a href="#pedir">Pedir</a>
     <a href="tour.html">Tour 360°</a>
@@ -41,21 +39,41 @@
 
 <main>
   <section id="inicio" aria-label="Apresentação">
-    <div class="stage">
-      <div class="intro">
+    <div class="palco">
+      <div class="abre">
         <p class="status" data-status>Sol Nascente, Maringá</p>
         <h1>O melhor dogão de Maringá e região</h1>
-        <p class="hint">Role para descobrir <span aria-hidden="true">↓</span></p>
       </div>
-      <div class="reveal">
-        <div class="badge"><img src="assets/img/logo.jpg" alt="Logo Polaco Lanches" width="200" height="200"></div>
-        <div class="reveal-cta">
-          <p><strong>4,8 ★</strong> em 480 avaliações no Google</p>
-          <div class="row">
-            <a class="btn btn-red" href="#cardapio">Ver cardápio</a>
-            <a class="btn btn-ghost" href="#pedir">Pedir agora</a>
-          </div>
-        </div>
+      <div class="surge"><img src="assets/img/logo-polaco.webp" alt="Logo Polaco Lanches com o mascote" width="820" height="643"></div>
+      <canvas id="moto" width="640" height="640" role="img" aria-label="Mascote da Polaco Lanches passando de moto com a entrega"></canvas>
+      <p class="hint">Role para receber a entrega <span aria-hidden="true">↓</span></p>
+      <div class="fecha">
+        <p class="nota"><strong>4,8 ★</strong> em 480 avaliações no Google</p>
+        <a class="btn btn-red" href="#cardapio">Ver cardápio</a>
+        <a class="btn btn-ghost" href="#pedir">Pedir agora</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="premio">
+    <div class="wrap premio">
+      <div>
+        <div class="medalha" aria-hidden="true"><span>★</span><b>Melhor<br>do Ano</b></div>
+        <p class="eyebrow">Reconhecimento</p>
+        <h2>Prêmio Melhor do Ano</h2>
+        <p class="premio-txt">Um carrinho de lanches aberto em 1991 virou referência em Maringá. O prêmio de Melhor do Ano reconhece o capricho de cada dogão, com recheio generoso e a maionese Polaconese.</p>
+        <dl class="numeros">
+          <div><dt>Desde</dt><dd>1991</dd></div>
+          <div><dt>480 avaliações no Google</dt><dd>4,8 ★</dd></div>
+          <div><dt>Seguidores no Instagram</dt><dd>17,2 mil</dd></div>
+        </dl>
+        <a class="btn btn-claro" href="https://www.instagram.com/polacolanchesmga/" target="_blank" rel="noopener">Ver no Instagram</a>
+      </div>
+      <div class="galeria">
+        <figure><img src="assets/premio/vaca-louca.webp" alt="X Vaca Louca aberto ao meio, cheio de carne" width="1000" height="1000" loading="lazy"><figcaption>X Vaca Louca</figcaption></figure>
+        <figure><img src="assets/premio/festival-1.webp" alt="Dog Toscana Queijo sobre tábua de madeira" width="750" height="1000" loading="lazy"><figcaption>Dog Toscana Queijo</figcaption></figure>
+        <figure><img src="assets/premio/festival-2.webp" alt="Maionese Polaconese sendo colocada no lanche" width="750" height="1000" loading="lazy"><figcaption>Maionese Polaconese</figcaption></figure>
+        <figure><img src="assets/premio/bacon-batata.webp" alt="Cesta de lanches com bacon e porção de batata frita" width="1000" height="1000" loading="lazy"><figcaption>Lanches e batata</figcaption></figure>
       </div>
     </div>
   </section>
