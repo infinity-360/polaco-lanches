@@ -10,16 +10,14 @@ const brl = n => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" 
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const waLink = text => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
 
-/* Entregador atravessa a página com a rolagem e vira a logo */
+/* Entregador cruza a tela sozinho e revela a logo atrás dele */
 const hero = $("#inicio"), header = $("#top"), palco = $(".palco"), moto = $("#moto"), surge = $(".surge");
-const ctx = moto.getContext("2d");
-const QUADROS = 12, quadros = [];
+const brilho = $(".brilho"), aura = $(".aura"), ctx = moto.getContext("2d");
+const QUADROS = 12, DURACAO = 5000, quadros = [];
 const semMovimento = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const limita = v => Math.min(1, Math.max(0, v));
 const trecho = (p, a, b) => limita((p - a) / (b - a));
-const suave = t => t * t * (3 - 2 * t);
-const salto = t => 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2);
-let alvo = semMovimento ? 1 : 0, atual = alvo, girando = false, ultimo = -1;
+let atual = semMovimento ? 1 : 0, ultimo = null, antes = 0, iniciado = false;
 
 function desenharMoto(i) {
   const img = quadros[i] || quadros.find(Boolean);
@@ -29,38 +27,46 @@ function desenharMoto(i) {
   ctx.drawImage(img, 0, 0, 640, 640);
 }
 function cena(p) {
-  const W = palco.clientWidth, S = moto.offsetWidth;
-  const anda = suave(trecho(p, 0, .52)), entra = suave(trecho(p, .5, .68));
-  const x = (1 - anda) * -(W / 2 + S * .62);
-  const pulo = Math.sin(p * 90) * 3 * (1 - entra);
-  const giro = Math.sin(p * 55) * .7 * (1 - entra) - entra * 8;
-  moto.style.transform = `translate(calc(-50% + ${x.toFixed(1)}px), calc(-50% + ${pulo.toFixed(1)}px)) rotate(${giro.toFixed(2)}deg) scale(${(1 - entra * .74).toFixed(3)})`;
-  moto.style.opacity = (1 - trecho(p, .6, .69)).toFixed(3);
-  const l = trecho(p, .56, .74);
-  surge.style.opacity = limita(l * 3.2).toFixed(3);
-  surge.style.transform = `translate(-50%, -50%) scale(${(.16 + .84 * salto(l)).toFixed(3)}) rotate(${((1 - l) * -14).toFixed(2)}deg)`;
-  const n = Math.floor(p * 70) % (QUADROS * 2 - 2);
+  const W = palco.clientWidth, S = moto.offsetWidth, L = surge.offsetWidth;
+  const t = trecho(p, 0, .72);
+  /* Mais rápido nas pontas e um pouco mais lento ao passar pelo centro */
+  const fora = W / 2 + S * .66, x = -fora + 2 * fora * (t + .055 * Math.sin(2 * Math.PI * t));
+  const pulo = Math.sin(p * 120) * 3, giro = Math.sin(p * 70) * .8;
+  moto.style.transform = `translate(calc(-50% + ${x.toFixed(1)}px), calc(-50% + ${pulo.toFixed(1)}px)) rotate(${giro.toFixed(2)}deg)`;
+  brilho.style.transform = `translate(calc(-50% + ${x.toFixed(1)}px), -50%) scale(${(1 + Math.sin(p * 46) * .05).toFixed(3)})`;
+  moto.style.visibility = brilho.style.visibility = t >= 1 ? "hidden" : "visible";
+  const revela = (x + L / 2) / L * 100, v = trecho(p, .6, .88), onda = Math.sin(Math.PI * v);
+  surge.style.setProperty("--m", `${Math.max(-5, Math.min(130, revela)).toFixed(1)}%`);
+  surge.style.transform = `translate(-50%, -50%) scale(${(1 + onda * .06).toFixed(3)})`;
+  aura.style.opacity = (limita((revela - 20) / 70) * (.55 + onda * .45)).toFixed(3);
+  aura.style.transform = `translate(-50%, -50%) scale(${(1 + onda * .14).toFixed(3)})`;
+  const n = Math.floor(p * 130) % (QUADROS * 2 - 2);
   desenharMoto(n < QUADROS ? n : QUADROS * 2 - 2 - n);
   hero.style.setProperty("--p", p.toFixed(4));
   hero.classList.toggle("final", p > .76);
 }
-function animar() {
-  const falta = alvo - atual;
-  atual = Math.abs(falta) < .0008 ? alvo : atual + falta * .16;
+function animar(agora) {
+  /* Passo limitado: se a aba estiver em segundo plano, a cena continua de onde parou */
+  const passo = Math.min(50, agora - (antes || agora));
+  antes = agora;
+  atual = limita(atual + passo / DURACAO);
   cena(atual);
-  if (atual !== alvo) requestAnimationFrame(animar); else girando = false;
+  if (atual < 1) requestAnimationFrame(animar);
 }
-function onScroll() {
-  const curso = hero.offsetHeight - palco.clientHeight;
-  alvo = semMovimento || curso <= 0 ? 1 : limita(scrollY / curso);
-  header.classList.toggle("show", curso > 0 && scrollY > curso);
-  if (!girando) { girando = true; requestAnimationFrame(animar); }
+function iniciar() {
+  if (iniciado || semMovimento) return;
+  iniciado = true;
+  requestAnimationFrame(animar);
 }
+const onScroll = () => header.classList.toggle("show", scrollY > hero.offsetHeight * .7);
+let prontos = 0;
 for (let i = 0; i < QUADROS && !semMovimento; i++) {
   const img = new Image();
-  img.onload = () => { quadros[i] = img; ultimo = -1; cena(atual); };
+  img.onload = () => { quadros[i] = img; if (++prontos === QUADROS) iniciar(); };
+  img.onerror = () => { if (++prontos === QUADROS) iniciar(); };
   img.src = `assets/moto/m${String(i).padStart(2, "0")}.webp`;
 }
+setTimeout(iniciar, 2500);
 addEventListener("scroll", onScroll, { passive: true });
 addEventListener("resize", () => { cena(atual); onScroll(); });
 cena(atual);
